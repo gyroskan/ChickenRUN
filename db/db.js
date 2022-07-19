@@ -36,8 +36,8 @@ export async function setupDatabase() {
             database: process.env.DB_NAME,
         });
 
-        result = pool.query(chickenTableCreate);
-        if (result.affectedRows === 1)
+        result = await pool.query(chickenTableCreate);
+        if (result.warningStatus === 0)
             logger.info("Table 'chicken' created");
 
         return undefined;

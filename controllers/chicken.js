@@ -44,7 +44,7 @@ export async function getChickens(req, res) {
     catch (err) {
         // could also provide the error in the response
         res.status(500).json({ error: 'Server error' });
-        logger.error('Error while getting chickens', err);
+        logger.error(err, 'Error while getting chickens');
     }
 }
 
@@ -63,7 +63,7 @@ export async function getChicken(req, res) {
     catch (err) {
         // could also provide the error in the response
         res.status(500).json({ error: 'Server error' });
-        logger.error('Error while getting chicken', err);
+        logger.error(err, 'Error while getting chicken');
     }
 }
 
@@ -86,14 +86,26 @@ export async function createChicken(req, res) {
         const result = await pool.query(insert,
             [chicken.name, chicken.birthday, chicken.weight, chicken.steps, chicken.isRunning]);
 
-        chicken.id = result.insertId;
+        chicken.id = Number(result.insertId);
         res.status(201).json(chicken);
     }
     catch (err) {
         // could also provide the error in the response
         res.status(500).json({ error: 'Server error' });
-        logger.error('Error while creating chicken', err);
+        logger.error(err, 'Error while creating chicken');
     }
+}
+
+function buildUpdate(body) {
+    let update = 'UPDATE `chicken` SET ';
+    const values = [];
+    for (const field in body) {
+        update += `${field} = ?, `;
+        values.push(body[field]);
+    }
+
+    update = update.substring(0, update.length - 2) + ' WHERE `id` = ?';
+    return { update, values };
 }
 
 /**
@@ -102,16 +114,29 @@ export async function createChicken(req, res) {
  */
 export async function updateChicken(req, res) {
     // TODO validate fields
-
-    const fields = req.body;
+    const { update, values } = buildUpdate(req.body);
+    try {
+        const result = await pool.query(update, [...values, req.params.id]);
+        if (result.affectedRows === 0) {
+            res.status(404).json({ error: 'Not found' });
+        }
+        else {
+            const chicken = await pool.query('SELECT * FROM `chicken` WHERE `id` = ?', [req.params.id]);
+            res.status(200).json(chicken);
+        }
+    }
+    catch (err) {
+        res.status(500).json({ error: 'Server error' });
+        logger.error(err, 'Error while updating chicken');
+    }
 }
 
 /**
  * @param {import("express").Request} req
  * @param {import("express").Response} res
  */
-export async function replaceChicken(req, res) {
-    res.send('replace chicken');
+export function replaceChicken(req, res) {
+    updateChicken(req, res);
 }
 
 /**
@@ -119,7 +144,18 @@ export async function replaceChicken(req, res) {
  * @param {import("express").Response} res
  */
 export async function deleteChicken(req, res) {
-    res.send('delete chicken');
+    try {
+        const result = await pool.query('DELETE FROM `chicken` WHERE `id` = ?', [req.params.id]);
+        if (result.affectedRows === 0)
+            res.status(404).json({ error: 'Not found' });
+
+        else
+            res.status(204).end();
+    }
+    catch (err) {
+        res.status(500).json({ error: 'Server error' });
+        logger.error(err, 'Error while deleting chicken');
+    }
 }
 
 /**
@@ -127,7 +163,18 @@ export async function deleteChicken(req, res) {
  * @param {import("express").Response} res
  */
 export async function chickenRun(req, res) {
-    res.send('chicken run');
+    const updateStep = 'UPDATE `chicken` SET `steps` = `steps` + 1, `isRunning` = true WHERE `id` = ?';
+    try {
+        const result = await pool.query(updateStep, [req.params.id]);
+        if (result.affectedRows === 0)
+            res.status(404).json({ error: 'Not found' });
+        else
+            res.status(200).end();
+    }
+    catch (err) {
+        res.status(500).json({ error: 'Server error' });
+        logger.error(err, 'Error while updating steps of chicken');
+    }
 }
 
 /**
@@ -135,5 +182,16 @@ export async function chickenRun(req, res) {
  * @param {import("express").Response} res
  */
 export async function chickenStop(req, res) {
-    res.send('chicken stop');
+    const stopChicken = 'UPDATE `chicken` SET `isRunning` = false WHERE `id` = ?';
+    try {
+        const result = await pool.query(stopChicken, [req.params.id]);
+        if (result.affectedRows === 0)
+            res.status(404).json({ error: 'Not found' });
+        else
+            res.status(200).end();
+    }
+    catch (err) {
+        res.status(500).json({ error: 'Server error' });
+        logger.error(err, 'Error while updating stop of chicken');
+    }
 }
