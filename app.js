@@ -44,8 +44,6 @@ import { router as chickenRouter } from './routes/chicken.js';
 app.use(express.json());
 app.use(pino({ logger: logger }));
 
-// FIXME: Use routes here
-
 app.use('/chicken', chickenRouter);
 
 
