@@ -1,7 +1,7 @@
 import express from 'express';
 import pino from 'express-pino-logger';
 import logger from './logger.js';
-// load .env values
+import expressJSDocSwagger from 'express-jsdoc-swagger';
 import { config } from 'dotenv';
 config();
 
@@ -10,12 +10,36 @@ if (!process.env.PORT || !process.env.DB_HOST || !process.env.DB_NAME || !proces
     process.exit(1);
 }
 
-
 const app = express();
 
+const docOptions = {
+    info: {
+        version: '1.0.0',
+        title:   'Chicken RUN',
+        license: { name: 'MIT' },
+    },
+    security: {
+        BasicAuth: {
+            type:   'http',
+            scheme: 'basic',
+        },
+    },
+    baseDir:         './',
+    filesPattern:    './**/*.js',
+    swaggerUIPath:   '/docs',
+    exposeSwaggerUI: true,
+    exposeApiDocs:   false,
+};
+expressJSDocSwagger(app)(docOptions);
+
+import { router as chickenRouter } from './routes/chicken.js';
+
+app.use(express.json());
 app.use(pino({ logger: logger }));
 
 // FIXME: Use routes here
+
+app.use('/chicken', chickenRouter);
 
 
 app.listen(process.env.PORT, () => {
