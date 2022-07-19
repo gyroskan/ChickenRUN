@@ -10,6 +10,13 @@ if (!process.env.PORT || !process.env.DB_HOST || !process.env.DB_NAME || !proces
     process.exit(1);
 }
 
+import { setupDatabase } from './db/db.js';
+const err = await setupDatabase();
+if (err !== undefined) {
+    logger.fatal(err, 'Failed to setup the database');
+    process.exit(2);
+}
+
 const app = express();
 
 const docOptions = {
