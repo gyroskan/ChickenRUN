@@ -25,12 +25,68 @@ import logger from '../logger.js';
 /**
  * The object used to patch a chicken
  * @typedef {object} ChickenPatch
- * @property {string} name - The name of the chicken
+ * @property {string} name.required - The name of the chicken
  * @property {string} birthday - The birthday of the chicken - date
- * @property {number} weight - The weight of the chicken
+ * @property {number} weight.required - The weight of the chicken
  * @property {number} steps - The steps of the chicken
  * @property {boolean} isRunning - Whether the chicken is running
  */
+
+function validateChicken(body) {
+    if (!body.name || typeof (body.name) !== 'string')
+        return false;
+
+    if (!body.weight || typeof (body.weight) !== 'number')
+        return false;
+
+    if (body.birthday && ((new Date(body.birthday) === 'Invalid Date') || isNaN(new Date(body.birthday))))
+        return false;
+
+    if (body.steps && typeof (body.steps) !== 'number')
+        return false;
+
+    if (body.isRunning && typeof (body.isRunning) !== 'boolean')
+        return false;
+
+    const allowedFields = ['name', 'birthday', 'weight', 'steps', 'isRunning'];
+
+    for (const field in body) {
+        if (!allowedFields.includes(field))
+            return false;
+    }
+    return true;
+}
+
+function validatePatch(body) {
+    for (const field in body) {
+        switch (field) {
+        case 'name':
+            if (typeof (body.name) !== 'string')
+                return false;
+            break;
+        case 'birthday':
+            if ((new Date(body.birthday) === 'Invalid Date') || isNaN(new Date(body.birthday)))
+                return false;
+            break;
+        case 'weight':
+            if (typeof (body.weight) !== 'number')
+                return false;
+            break;
+        case 'steps':
+            if (typeof (body.steps) !== 'number')
+                return false;
+            break;
+        case 'isRunning':
+            if (typeof (body.isRunning) !== 'boolean')
+                return false;
+            break;
+        default:
+            return false;
+        }
+    }
+
+    return true;
+}
 
 /**
  * @param {import("express").Request} req
@@ -73,6 +129,11 @@ export async function getChicken(req, res) {
  */
 export async function createChicken(req, res) {
     const chicken = req.body;
+    if (!validateChicken(chicken)) {
+        res.status(400).json({ error: 'Invalid request' });
+        return;
+    }
+
     if (!chicken.birthday)
         chicken.birthday = null;
     if (!chicken.steps)
@@ -80,7 +141,6 @@ export async function createChicken(req, res) {
     if (!chicken.isRunning)
         chicken.isRunning = false;
 
-    // FIXME: validate fields
     const insert = 'INSERT INTO `chicken` (`name`, `birthday`, `weight`, `steps`, `isRunning`) VALUES (?, ?, ?, ?, ?)';
     try {
         const result = await pool.query(insert,
@@ -113,7 +173,10 @@ function buildUpdate(body) {
  * @param {import("express").Response} res
  */
 export async function updateChicken(req, res) {
-    // TODO validate fields
+    if (!validatePatch(req.body)) {
+        res.status(400).json({ error: 'Invalid request' });
+        return;
+    }
     const { update, values } = buildUpdate(req.body);
     try {
         const result = await pool.query(update, [...values, req.params.id]);
@@ -136,6 +199,10 @@ export async function updateChicken(req, res) {
  * @param {import("express").Response} res
  */
 export function replaceChicken(req, res) {
+    if (!validateChicken(req.body)) {
+        res.status(400).json({ error: 'Invalid request' });
+        return;
+    }
     updateChicken(req, res);
 }
 
