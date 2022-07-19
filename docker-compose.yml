@@ -1,0 +1,35 @@
+version: "3.7"
+services:
+  chicken_run_api:
+    image: node:18
+    working_dir: /home/node/app
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PWD=root
+      - DB_NAME=chicken_run
+    volumes:
+      - ./:/home/node/app
+    depends_on:
+      - "db"
+    ports:
+      - "8080:8080"
+    command: node .
+    networks:
+      - chicken_run_network
+  db:
+    image: mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: chicken_run
+    volumes:
+      - ./data:/var/lib/mysql
+    networks:
+      - chicken_run_network
+
+networks:
+  chicken_run_network:
