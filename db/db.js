@@ -8,11 +8,19 @@ export let pool;
 
 const chickenTableCreate = `CREATE TABLE IF NOT EXISTS chicken (
     id INT NOT NULL AUTO_INCREMENT,
+    farmyard_id INT NOT NULL,
     name VARCHAR(255) NOT NULL,
     birthday DATE,
     weight INT NOT NULL,
     steps INT NOT NULL DEFAULT 0,
     isRunning BOOLEAN NOT NULL DEFAULT false,
+    PRIMARY KEY (id),
+    FOREIGN KEY (farmyard_id) REFERENCES farmyard(id)
+)`;
+
+const farmYardTableCreate = `CREATE TABLE IF NOT EXISTS farmyard (
+    id INT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
     PRIMARY KEY (id)
 )`;
 
@@ -36,9 +44,13 @@ export async function setupDatabase() {
             database: process.env.DB_NAME,
         });
 
+        result = await pool.query(farmYardTableCreate);
+        if (result.warningStatus === 0)
+            logger.info('Table \'farmyard\' created');
+
         result = await pool.query(chickenTableCreate);
         if (result.warningStatus === 0)
-            logger.info("Table 'chicken' created");
+            logger.info('Table \'chicken\' created');
 
         return undefined;
     }
