@@ -1,3 +1,6 @@
+import { pool } from '../db/db.js';
+import logger from '../logger.js';
+
 /**
  * The chicken object
  * @typedef {object} Chicken
@@ -29,34 +32,108 @@
  * @property {boolean} isRunning - Whether the chicken is running
  */
 
-export function getChickens(req, res) {
-    res.send('chickens');
+/**
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ */
+export async function getChickens(req, res) {
+    try {
+        const chickens = await pool.query('SELECT * FROM `chicken`');
+        res.status(200).json(chickens);
+    }
+    catch (err) {
+        // could also provide the error in the response
+        res.status(500).json({ error: 'Server error' });
+        logger.error('Error while getting chickens', err);
+    }
 }
 
-export function getChicken(req, res) {
-    res.send('chicken');
+/**
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ */
+export async function getChicken(req, res) {
+    try {
+        const chicken = await pool.query('SELECT * FROM `chicken` WHERE `id` = ?', [req.params.id]);
+        if (chicken.length === 0)
+            res.status(404).json({ error: 'Not found' });
+        else
+            res.status(200).json(chicken[0]);
+    }
+    catch (err) {
+        // could also provide the error in the response
+        res.status(500).json({ error: 'Server error' });
+        logger.error('Error while getting chicken', err);
+    }
 }
 
-export function createChicken(req, res) {
-    res.send('create chicken');
+/**
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ */
+export async function createChicken(req, res) {
+    const chicken = req.body;
+    if (!chicken.birthday)
+        chicken.birthday = null;
+    if (!chicken.steps)
+        chicken.steps = 0;
+    if (!chicken.isRunning)
+        chicken.isRunning = false;
+
+    // FIXME: validate fields
+    const insert = 'INSERT INTO `chicken` (`name`, `birthday`, `weight`, `steps`, `isRunning`) VALUES (?, ?, ?, ?, ?)';
+    try {
+        const result = await pool.query(insert,
+            [chicken.name, chicken.birthday, chicken.weight, chicken.steps, chicken.isRunning]);
+
+        chicken.id = result.insertId;
+        res.status(201).json(chicken);
+    }
+    catch (err) {
+        // could also provide the error in the response
+        res.status(500).json({ error: 'Server error' });
+        logger.error('Error while creating chicken', err);
+    }
 }
 
-export function updateChicken(req, res) {
-    res.send('update chicken');
+/**
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ */
+export async function updateChicken(req, res) {
+    // TODO validate fields
+
+    const fields = req.body;
 }
 
-export function replaceChicken(req, res) {
+/**
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ */
+export async function replaceChicken(req, res) {
     res.send('replace chicken');
 }
 
-export function deleteChicken(req, res) {
+/**
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ */
+export async function deleteChicken(req, res) {
     res.send('delete chicken');
 }
 
-export function chickenRun(req, res) {
+/**
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ */
+export async function chickenRun(req, res) {
     res.send('chicken run');
 }
 
-export function chickenStop(req, res) {
+/**
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ */
+export async function chickenStop(req, res) {
     res.send('chicken stop');
 }
