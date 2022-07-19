@@ -27,7 +27,7 @@ export const router = Router();
 router.get('/', chicken.getChickens);
 
 /**
- * GET /chicken/:id
+ * GET /chicken/{id}
  * @description Get a chicken by its id
  * @tags chicken
  * @param {number} id.path.required - The id of the chicken
@@ -47,7 +47,7 @@ router.get('/:id', chicken.getChicken);
 router.post('/', chicken.createChicken);
 
 /**
- * PATCH /chicken/:id
+ * PATCH /chicken/{id}
  * @description Update some fields of a chicken
  * @tags chicken
  * @param {number} id.path.required - The id of the chicken
@@ -59,7 +59,7 @@ router.post('/', chicken.createChicken);
 router.patch('/:id', chicken.updateChicken);
 
 /**
- * PUT /chicken/:id
+ * PUT /chicken/{id}
  * @description Replace a chicken
  * @tags chicken
  * @param {number} id.path.required - The id of the chicken
@@ -71,7 +71,7 @@ router.patch('/:id', chicken.updateChicken);
 router.put('/:id', chicken.replaceChicken);
 
 /**
- * DELETE /chicken/:id
+ * DELETE /chicken/{id}
  * @description Delete a chicken
  * @tags chicken
  * @param {number} id.path.required - The id of the chicken
@@ -81,7 +81,7 @@ router.put('/:id', chicken.replaceChicken);
 router.delete('/:id', chicken.deleteChicken);
 
 /**
- * POST /chicken/:id/run
+ * POST /chicken/{id}/run
  * @description Increase the steps of the chicken by 1
  * @tags chicken
  * @param {number} id.path.required - The id of the chicken
