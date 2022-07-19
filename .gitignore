@@ -27,3 +27,6 @@ bin/
 obj/
 out/
 .vscode/
+
+# DB files
+data/
