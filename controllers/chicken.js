@@ -6,6 +6,7 @@ import logger from '../logger.js';
  * @typedef {object} Chicken
  * @property {number} id - The chicken id
  * @property {string} name.required - The name of the chicken
+ * @property {number} farmyardID.required - The id of the farmyard related to the chicken
  * @property {string} birthday - The birthday of the chicken - date
  * @property {number} weight.required - The weight of the chicken
  * @property {number} steps - The steps of the chicken
@@ -16,6 +17,7 @@ import logger from '../logger.js';
  * The object used to create a chicken
  * @typedef {object} ChickenCreation
  * @property {string} name.required - The name of the chicken
+ * @property {number} farmyardID.required - The id of the farmyard related to the chicken
  * @property {string} birthday - The birthday of the chicken - date
  * @property {number} weight.required - The weight of the chicken
  * @property {number} steps=0 - The steps of the chicken
@@ -25,7 +27,8 @@ import logger from '../logger.js';
 /**
  * The object used to patch a chicken
  * @typedef {object} ChickenPatch
- * @property {string} name.required - The name of the chicken
+ * @property {string} name - The name of the chicken
+ * @property {number} farmyardID.required - The id of the farmyard related to the chicken
  * @property {string} birthday - The birthday of the chicken - date
  * @property {number} weight.required - The weight of the chicken
  * @property {number} steps - The steps of the chicken
@@ -34,6 +37,9 @@ import logger from '../logger.js';
 
 function validateChicken(body) {
     if (!body.name || typeof (body.name) !== 'string')
+        return false;
+
+    if (!body.farmyardID || typeof (body.farmyardID) !== 'number')
         return false;
 
     if (!body.weight || typeof (body.weight) !== 'number')
@@ -68,6 +74,10 @@ function validatePatch(body) {
             if ((new Date(body.birthday) === 'Invalid Date') || isNaN(new Date(body.birthday)))
                 return false;
             break;
+        case 'farmyardID':
+            if (typeof (body.farmyardID) !== 'number')
+                return false;
+            break;
         case 'weight':
             if (typeof (body.weight) !== 'number')
                 return false;
@@ -87,6 +97,8 @@ function validatePatch(body) {
 
     return true;
 }
+
+// TODO - switch sql errors for foreign key errors
 
 /**
  * @param {import("express").Request} req

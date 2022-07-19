@@ -40,11 +40,13 @@ const docOptions = {
 expressJSDocSwagger(app)(docOptions);
 
 import { router as chickenRouter } from './routes/chicken.js';
+import { router as farmyardRouter } from './routes/farmyard.js';
 
 app.use(express.json());
 app.use(pino({ logger: logger }));
 
 app.use('/chicken', chickenRouter);
+app.use('/farmyard', farmyardRouter);
 
 
 app.listen(process.env.PORT, () => {
