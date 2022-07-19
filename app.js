@@ -10,12 +10,16 @@ if (!process.env.PORT || !process.env.DB_HOST || !process.env.DB_NAME || !proces
     process.exit(1);
 }
 
+import { router as chickenRouter } from './routes/chicken.js';
 
 const app = express();
 
+app.use(express.json());
 app.use(pino({ logger: logger }));
 
 // FIXME: Use routes here
+
+app.use('/chicken', chickenRouter);
 
 
 app.listen(process.env.PORT, () => {
